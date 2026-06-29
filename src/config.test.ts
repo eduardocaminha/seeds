@@ -1,7 +1,6 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { mkdirSync, realpathSync, writeFileSync } from "node:fs";
 import { mkdtemp, rm } from "node:fs/promises";
-import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { findSeedsDir, isInsideWorktree } from "./config";
 
@@ -23,7 +22,7 @@ function initSeedsDir(root: string): void {
 let tmpDir: string;
 
 beforeEach(async () => {
-	tmpDir = realpathSync(await mkdtemp(join(tmpdir(), "seeds-config-test-")));
+	tmpDir = realpathSync(await mkdtemp(join("/tmp", "seeds-config-test-")));
 });
 
 afterEach(async () => {

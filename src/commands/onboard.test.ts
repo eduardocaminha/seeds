@@ -1,6 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { mkdtemp, rm } from "node:fs/promises";
-import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { runCli } from "../test-harness.ts";
 import { VERSION } from "../version.ts";
@@ -19,7 +18,7 @@ async function initSeeds(cwd: string): Promise<void> {
 }
 
 beforeEach(async () => {
-	tmpDir = await mkdtemp(join(tmpdir(), "seeds-onboard-test-"));
+	tmpDir = await mkdtemp(join("/tmp", "seeds-onboard-test-"));
 });
 
 afterEach(async () => {
