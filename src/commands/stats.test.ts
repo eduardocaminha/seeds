@@ -58,7 +58,7 @@ describe("sd stats", () => {
 			tmpDir,
 		);
 		const cOut = await runJson<{ id: string }>(["create", "--title", "C"], tmpDir);
-		await run(["dep", "add", bOut.id, "--blocked-by", aOut.id], tmpDir);
+		await run(["dep", "add", bOut.id, aOut.id], tmpDir);
 		await run(["close", cOut.id], tmpDir);
 
 		const out = await runJson<{

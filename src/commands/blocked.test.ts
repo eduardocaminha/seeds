@@ -37,8 +37,8 @@ describe("sd blocked", () => {
 		const d = await createSeed("D", tmpDir);
 
 		// b blocked by open a → counted; c blocked by closed d → not counted.
-		await run(["dep", "add", b, "--blocked-by", a], tmpDir);
-		await run(["dep", "add", c, "--blocked-by", d], tmpDir);
+		await run(["dep", "add", b, a], tmpDir);
+		await run(["dep", "add", c, d], tmpDir);
 		await run(["close", d], tmpDir);
 
 		const out = await runJson<{
