@@ -295,6 +295,42 @@ describe("sd list label filters", () => {
 	});
 });
 
+describe("sd label list (human output)", () => {
+	test("shows 'has no labels' for issue with no labels", async () => {
+		const { stdout, exitCode } = await run(["label", "list", id1], tmpDir);
+		expect(exitCode).toBe(0);
+		expect(stdout).toContain("has no labels");
+	});
+
+	test("shows issue id, 'labels:' header, and each label name", async () => {
+		await run(["label", "add", id1, "bug", "ui"], tmpDir);
+		const { stdout, exitCode } = await run(["label", "list", id1], tmpDir);
+		expect(exitCode).toBe(0);
+		expect(stdout).toContain(id1);
+		expect(stdout).toContain("labels:");
+		expect(stdout).toContain("bug");
+		expect(stdout).toContain("ui");
+	});
+});
+
+describe("sd label list-all (human output)", () => {
+	test("shows 'No labels found' when no issues have labels", async () => {
+		const { stdout, exitCode } = await run(["label", "list-all"], tmpDir);
+		expect(exitCode).toBe(0);
+		expect(stdout).toContain("No labels found");
+	});
+
+	test("shows label names, counts, and summary line", async () => {
+		await run(["label", "add", id1, "bug", "ui"], tmpDir);
+		await run(["label", "add", id2, "bug"], tmpDir);
+		const { stdout, exitCode } = await run(["label", "list-all"], tmpDir);
+		expect(exitCode).toBe(0);
+		expect(stdout).toContain("bug");
+		expect(stdout).toContain("ui");
+		expect(stdout).toContain("label(s)");
+	});
+});
+
 describe("sd stats with labels", () => {
 	test("includes byLabel in stats", async () => {
 		await run(["label", "add", id1, "bug", "ui"], tmpDir);
