@@ -53,6 +53,14 @@ describe("sd dep add", () => {
 		expect(result.success).toBe(true);
 	});
 
+	test("prints human-readable confirmation without --json", async () => {
+		const { stdout, exitCode } = await run(["dep", "add", id2, id1], tmpDir);
+		expect(exitCode).toBe(0);
+		expect(stdout).toContain("Added dependency:");
+		expect(stdout).toContain(id2);
+		expect(stdout).toContain(id1);
+	});
+
 	test("blocked issue has blocker in blockedBy", async () => {
 		await run(["dep", "add", id2, id1], tmpDir);
 		const show = await runJson<{ success: boolean; issue: { blockedBy?: string[] } }>(
@@ -127,6 +135,14 @@ describe("sd dep remove", () => {
 		expect(result.success).toBe(true);
 	});
 
+	test("prints human-readable confirmation without --json", async () => {
+		const { stdout, exitCode } = await run(["dep", "remove", id2, id1], tmpDir);
+		expect(exitCode).toBe(0);
+		expect(stdout).toContain("Removed dependency:");
+		expect(stdout).toContain(id2);
+		expect(stdout).toContain(id1);
+	});
+
 	test("blockedBy no longer contains removed dep", async () => {
 		await run(["dep", "remove", id2, id1], tmpDir);
 		const show = await runJson<{ success: boolean; issue: { blockedBy?: string[] } }>(
@@ -174,6 +190,59 @@ describe("sd dep list", () => {
 			tmpDir,
 		);
 		expect(result.blocks).toContain(id2);
+	});
+});
+
+describe("sd dep list (human output)", () => {
+	test("shows no-deps message for issue with no dependencies", async () => {
+		const { stdout, exitCode } = await run(["dep", "list", id1], tmpDir);
+		expect(exitCode).toBe(0);
+		expect(stdout).toContain("No dependencies.");
+	});
+
+	test("shows Blocked by section when issue has blockedBy", async () => {
+		await run(["dep", "add", id2, id1], tmpDir);
+		const { stdout, exitCode } = await run(["dep", "list", id2], tmpDir);
+		expect(exitCode).toBe(0);
+		expect(stdout).toContain("Blocked by:");
+		expect(stdout).toContain(id1);
+	});
+
+	test("shows Blocks section when issue blocks others", async () => {
+		await run(["dep", "add", id2, id1], tmpDir);
+		const { stdout, exitCode } = await run(["dep", "list", id1], tmpDir);
+		expect(exitCode).toBe(0);
+		expect(stdout).toContain("Blocks:");
+		expect(stdout).toContain(id2);
+	});
+
+	test("shows both sections when issue has blockedBy and blocks", async () => {
+		await run(["dep", "add", id2, id1], tmpDir);
+		await run(["dep", "add", id3, id2], tmpDir);
+		const { stdout, exitCode } = await run(["dep", "list", id2], tmpDir);
+		expect(exitCode).toBe(0);
+		expect(stdout).toContain("Blocked by:");
+		expect(stdout).toContain(id1);
+		expect(stdout).toContain("Blocks:");
+		expect(stdout).toContain(id3);
+	});
+
+	test("includes issue title in blockedBy output", async () => {
+		await run(["dep", "add", id2, id1], tmpDir);
+		const { stdout } = await run(["dep", "list", id2], tmpDir);
+		expect(stdout).toContain("Issue A");
+	});
+
+	test("includes issue title in blocks output", async () => {
+		await run(["dep", "add", id2, id1], tmpDir);
+		const { stdout } = await run(["dep", "list", id1], tmpDir);
+		expect(stdout).toContain("Issue B");
+	});
+
+	test("includes issue id in header line", async () => {
+		const { stdout } = await run(["dep", "list", id1], tmpDir);
+		expect(stdout).toContain(id1);
+		expect(stdout).toContain("dependencies:");
 	});
 });
 
