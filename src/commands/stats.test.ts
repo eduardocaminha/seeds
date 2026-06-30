@@ -86,4 +86,52 @@ describe("sd stats", () => {
 		expect(exitCode).not.toBe(0);
 		expect(stderr.length).toBeGreaterThan(0);
 	});
+
+	test("--format compact shows summary line and by_priority / by_label when present", async () => {
+		await run(["create", "--title", "A", "--priority", "1", "--label", "ui"], tmpDir);
+		await run(["create", "--title", "B", "--priority", "1", "--label", "ui"], tmpDir);
+		await run(["create", "--title", "C", "--priority", "3", "--label", "backend"], tmpDir);
+		const { stdout, exitCode } = await run(["stats", "--format", "compact"], tmpDir);
+		expect(exitCode).toBe(0);
+		expect(stdout).toContain("total=3");
+		expect(stdout).toContain("open=3");
+		expect(stdout).toContain("by_priority:");
+		expect(stdout).toContain("P1=2");
+		expect(stdout).toContain("P3=1");
+		expect(stdout).toContain("by_label:");
+		expect(stdout).toContain("ui=2");
+		expect(stdout).toContain("backend=1");
+	});
+
+	test("--format compact with empty store shows zero summary and no by_priority / by_label", async () => {
+		const { stdout, exitCode } = await run(["stats", "--format", "compact"], tmpDir);
+		expect(exitCode).toBe(0);
+		expect(stdout).toContain("total=0");
+		expect(stdout).not.toContain("by_priority:");
+		expect(stdout).not.toContain("by_label:");
+	});
+
+	test("--format plain shows By Priority and By Label sections when present", async () => {
+		await run(["create", "--title", "X", "--priority", "0", "--label", "urgent"], tmpDir);
+		await run(["create", "--title", "Y", "--priority", "0", "--label", "urgent"], tmpDir);
+		await run(["create", "--title", "Z", "--priority", "4", "--label", "nice-to-have"], tmpDir);
+		const { stdout, exitCode } = await run(["stats", "--format", "plain"], tmpDir);
+		expect(exitCode).toBe(0);
+		expect(stdout).toContain("Project Statistics");
+		expect(stdout).toContain("By Priority");
+		expect(stdout).toContain("P0");
+		expect(stdout).toContain("P4");
+		expect(stdout).toContain("By Label");
+		expect(stdout).toContain("urgent");
+		expect(stdout).toContain("nice-to-have");
+	});
+
+	test("--format plain with empty store shows summary without By Priority or By Label", async () => {
+		const { stdout, exitCode } = await run(["stats", "--format", "plain"], tmpDir);
+		expect(exitCode).toBe(0);
+		expect(stdout).toContain("Project Statistics");
+		expect(stdout).toContain("Total:");
+		expect(stdout).not.toContain("By Priority");
+		expect(stdout).not.toContain("By Label");
+	});
 });
